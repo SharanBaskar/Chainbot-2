@@ -1,0 +1,37 @@
+<div class="chat-container" [ngClass]="{ minimized: isMinimized }" (click)="isMinimized ? toggleMinimize() : null" id="chat-container">
+  <div class="chat-header">
+    <span class="chat-title">ChainBot</span>
+    <button class="minimize-btn" (click)="toggleMinimize($event)">_</button>
+    <button class="close-btn" (click)="closeChat($event)">x</button>
+  </div>
+
+  <div class="chat-content" id="chat-content" #chatContent>
+    <div *ngFor="let message of conversation" class="message" [ngClass]="{ 'user-message': message.speaker === 'user', 'bot-message': message.speaker === 'bot' }">
+      <div *ngIf="message.speaker === 'bot'" class="message-icon">
+        <img style="width: 35px; height: 35px;" src="https://static.thenounproject.com/png/1156284-200.png" alt="Bot Icon">
+      </div>
+      <div class="message-text">
+        {{ message.text }}
+      </div>
+    </div>
+
+    <div *ngIf="currentNode.type === 'question'" class="answers">
+      <button *ngFor="let answer of currentNode.answers" (click)="selectAnswer(answer)">
+        {{ answer.text }}
+      </button>
+    </div>
+
+    <div *ngIf="currentNode.type === 'input'" class="user-input">
+      <div class="input-icon">
+        <img style="width: 20px; height: 20px;" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnRWFs0zshslKNFEmRVUuHgYNfmk5_-M4Qgw&s" alt="User Icon" />
+      </div>
+      <input [(ngModel)]="userInput" placeholder="Type your response..." />
+      <button (click)="submitInput()">Submit</button>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    </div>
+  </div>
+
+  <div class="chat-minimized" id="chat-minimized" (click)="toggleMinimize()" *ngIf="isMinimized">
+    <img style="width: 50px; height: 50px;" src="https://chatbot.design/favicon.ico">
+  </div>
+</div>
