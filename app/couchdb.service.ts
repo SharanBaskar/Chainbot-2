@@ -23,9 +23,9 @@ interface Answer {
   providedIn: 'root'
 })
 export class CouchdbService {
-  private dbUrl = 'https://192.168.57.185:5984/decison-tree-db/decisiontree_3';
-  private username = 'd_couchdb'; // Replace with your CouchDB username
-  private password = 'Welcome#2'; // Replace with your CouchDB password
+  private dbUrl = 'YOUR_URL/decison-tree-db/decisiontree_3';
+  private username = ''; // Replace with your CouchDB username
+  private password = ''; // Replace with your CouchDB password
 
   constructor(private http: HttpClient) { }
 
