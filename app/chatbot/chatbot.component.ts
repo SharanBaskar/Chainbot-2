@@ -1,6 +1,8 @@
 import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CouchdbService } from '../couchdb.service';
+import { GeminiService } from './gemini.service';  // Updated import
+
 import emailjs, { EmailJSResponseStatus } from 'emailjs-com';
 
 interface Answer {
@@ -37,7 +39,11 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
 
   @ViewChild('chatContent') private chatContent!: ElementRef;
 
-  constructor(private couchdbService: CouchdbService, private http: HttpClient) {}
+  constructor(
+    private couchdbService: CouchdbService,
+    private http: HttpClient,
+    private geminiService: GeminiService  // Updated service
+  ) {}
 
   ngOnInit(): void {
     this.couchdbService.getDecisionTree().subscribe(data => {
@@ -74,10 +80,9 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
       if (answer.text === 'Yes, submit') {
         this.sendLeaveApplicationEmail();
         return;
-      } else {
-        // Handle other options if needed
       }
     }
+    
     this.currentNode = this.decisionTree.nodes[answer.next];
     this.processNode();
   }
@@ -121,14 +126,12 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
     this.userInput = '';
   }
 
-  processUserInput(input: string): void {
+  async processUserInput(input: string): Promise<void> {
     // Map user input to the next node based on predefined keywords or phrases
     let nextNode = this.currentNode.next;
 
-    // Example keyword matching (you can expand this logic based on your needs)
     const keywordMappings: { [key: string]: string } = {
-      "leave": "node2", "lave": "node2", "leve": "node2", "leae": "node2", "leav": "node2", "eave": "node2",
-      "lev": "node2", "lea": "node2", "lvee": "node2", "levae": "node2", "leace": "node2", "leavve": "node2", "leaev": "node2",
+      "apply for leave": "node2", "apply for lave": "node2", "apply for leve": "node2",
       "check balance": "node2", "check balnce": "node2", "check blance": "node2", "check balane": "node2", "check balanc": "node2",
       "ticket": "node16", "tcket": "node16", "tiket": "node16", "ticet": "node16", "tickt": "node16", "ticke": "node16", "icket": "node16",
       "tick": "node16", "tikcet": "node16", "tikeet": "node16", "ticcket": "node16", "ticetk": "node16", "ticekt": "node16",
@@ -136,8 +139,8 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
       "techncal": "node18", "technial": "node18", "technicl": "node18", "technica": "node18", "teachnical": "node18",
       "tecical": "node18", "techncl": "node18", "tecnhical": "node18", "tehcnical": "node18", "techincal": "node18", "tecchnical": "node18",
       "tehc": "node18", "tecni": "node18", "technicaly": "node18", "techniacl": "node18", "technialc": "node18",
-      "hi": "node1", "hello": "node1", "hey": "node1", "hiya": "node1", "hii": "node1"
-    
+      "hello": "node1", "hey": "node1", "hiya": "node1", "hii": "node1",
+      "your name" : "node1", "developed you": "node20","develped": "node20"
     };
 
     for (const keyword in keywordMappings) {
@@ -147,8 +150,18 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
       }
     }
 
-    this.currentNode = this.decisionTree.nodes[nextNode || ''];
-    this.processNode();
+    if (!nextNode) {
+      try {
+        const suggestion = await this.geminiService.generateText(input);  // Use GeminiService
+        this.addMessage('bot', suggestion);
+      } catch (error) {
+        console.error('Error getting response from Gemini:', error);
+        this.addMessage('bot', "I’m having trouble understanding your request. Could you please provide more details?");
+      }
+    } else {
+      this.currentNode = this.decisionTree.nodes[nextNode || ''];
+      this.processNode();
+    }
   }
 
   validateEmail(email: string): boolean {
@@ -208,36 +221,36 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
     return text.replace(/\[\w+\]/g, match => this.leaveDetails[match.slice(1, -1)] || match);
   }
 
-  toggleMinimize(event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.isMinimized = !this.isMinimized;
+ 
+toggleMinimize(event?: Event): void {
+  if (event) {
+    event.stopPropagation();
   }
+  this.isMinimized = !this.isMinimized;
+}
 
-  closeChat(event?: Event): void {
-    const confirmClose = confirm("Are you sure you want to close the chat?");
-    if (event) {
-      event.stopPropagation();
-    }
-    this.isMinimized = !this.isMinimized;
+closeChat(event?: Event): void {
+  const confirmClose = confirm("Are you sure you want to close the chat?");
+  if (event) {
+    event.stopPropagation();
   }
+  this.isMinimized = !this.isMinimized;
+}
 
-  private scrollToBottom(): void {
-    try {
-      this.chatContent.nativeElement.scrollTop = this.chatContent.nativeElement.scrollHeight;
-    } catch (err) {
-      console.error('Scroll to bottom failed:', err);
-    }
+private scrollToBottom(): void {
+  try {
+    this.chatContent.nativeElement.scrollTop = this.chatContent.nativeElement.scrollHeight;
+  } catch (err) {
+    console.error('Scroll to bottom failed:', err);
   }
+}
 
-  displayErrorMessage(message: string): void {
-    this.errorMessage = message;
-    setTimeout(() => {
-      this.errorMessage = '';
-    }, 2000);
-  }
-
+displayErrorMessage(message: string): void {
+  this.errorMessage = message;
+  setTimeout(() => {
+    this.errorMessage = '';
+  }, 2000);
+}
   sendLeaveApplicationEmail(): void {
     const templateParams = {
       employee_email: this.leaveDetails['Enter your Email ID'],
@@ -253,10 +266,62 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
     emailjs.send('service_xtcg508', 'template_ky3ydpp', templateParams, 'QVAF5IuB_-FAI3Hzm')
       .then((response: EmailJSResponseStatus) => {
         console.log('SUCCESS!', response.status, response.text);
-        this.currentNode = this.decisionTree.nodes['node13'];
-        this.processNode();
+        this.updateLeaveBalance(this.leaveDetails['Please provide your employee ID'], this.leaveDetails['No. of days']);
       }, (error) => {
         console.error('FAILED...', error);
       });
   }
+
+  updateLeaveBalance(employeeId: string, leaveDays: string): void {
+    const url = `https://192.168.57.185:5984/employee-db/${employeeId}`;
+    const headers = new HttpHeaders({
+      'Authorization': 'Basic ' + btoa('d_couchdb:Welcome#2'),
+      'Content-Type': 'application/json'
+    });
+  
+    this.http.get<any>(url, { headers }).subscribe(
+      data => {
+        if (data.leaveBalance >= parseInt(leaveDays, 10)) {
+          data.leaveBalance -= parseInt(leaveDays, 10);
+  
+          // Add leave details to the employee document
+          if (!data.leaveDetails) {
+            data.leaveDetails = [];
+          }
+          
+          data.leaveDetails.push({
+            leaveType: this.leaveDetails['Type of leave'],
+            leaveReason: this.leaveDetails['Reason for the leave'],
+            startDate: this.leaveDetails['Please provide the start date for your leave. (Format: YYYY-MM-DD)'],
+            endDate: this.leaveDetails['Please provide the end date for your leave. (Format: YYYY-MM-DD)'],
+            leaveDays: this.leaveDetails['No. of days'],
+            dateRequested: new Date().toISOString()  // Current date and time
+          });
+  
+          this.http.put(url, data, { headers }).subscribe(
+            () => {
+              console.log('Leave balance and details updated successfully.');
+              this.currentNode = this.decisionTree.nodes['node21'];
+              this.processNode();
+            },
+            error => {
+              console.error('Error updating leave balance and details:', error);
+            }
+          );
+        } else {
+          this.addMessage('bot', 'Insufficient leave balance.');
+          this.currentNode = this.decisionTree.nodes[this.decisionTree.startNode];
+          this.processNode();
+        }
+      },
+      error => {
+        console.error('Error fetching employee data:', error);
+        this.addMessage('bot', 'Failed to retrieve employee data.');
+        this.currentNode = this.decisionTree.nodes[this.decisionTree.startNode];
+        this.processNode();
+      }
+    );
+  }
+  
 }
+
