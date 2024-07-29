@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +15,7 @@ export class GeminiService {
   }
 
   async generateText(prompt: string): Promise<string> {
-    const model = this.generativeAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = this.generativeAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     this.messageHistory.next({
       from: 'user',
       message: prompt
@@ -23,7 +23,19 @@ export class GeminiService {
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    let text = response.text();
+
+    // Remove '**' for bold formatting
+    text = text.replace(/\*\*/g, '');
+
+    // Add line breaks or bullet points for each point in the response
+    text = text.replace(/\d\.\s/g, '\n* '); // Add bullet points for numbered lists
+    text = text.replace(/Tips for Effective Bug Reporting:/, '\nTips for Effective Bug Reporting:\n* ');
+    text = text.replace(/\*\s/g, '\n* '); // Add bullet points for other points
+
+    // Truncate the text to keep it short and sweet
+    text = text.split('\n').slice(0, 10).join('\n'); // Limit to first 5 lines
+
     console.log(text);
     this.messageHistory.next({
       from: 'bot',
@@ -33,7 +45,7 @@ export class GeminiService {
     return text;
   }
 
-  public getMessageHistory(): Observable<any> {
+  public getMessageHistory() {
     return this.messageHistory.asObservable();
   }
 }
