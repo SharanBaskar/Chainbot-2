@@ -175,7 +175,7 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
   }
 
   checkEmployeeEligibility(employeeId: string): void {
-    const url = `https://192.168.57.185:5984/employee-db/${employeeId}`;
+    const url = `Your_URl/employee-db/${employeeId}`;
     const headers = new HttpHeaders({
       'Authorization': 'Basic ' + btoa('d_couchdb:Welcome#2')
     });
@@ -263,7 +263,7 @@ displayErrorMessage(message: string): void {
       end_date: this.leaveDetails['Please provide the end date for your leave. (Format: YYYY-MM-DD)']
     };
 
-    emailjs.send('service_xtcg508', 'template_ky3ydpp', templateParams, 'QVAF5IuB_-FAI3Hzm')
+    emailjs.send('SERVICE_ID', 'TEMPLATE_ID', templateParams, 'PUBLIC_KEY')
       .then((response: EmailJSResponseStatus) => {
         console.log('SUCCESS!', response.status, response.text);
         this.updateLeaveBalance(this.leaveDetails['Please provide your employee ID'], this.leaveDetails['No. of days']);
@@ -273,9 +273,9 @@ displayErrorMessage(message: string): void {
   }
 
   updateLeaveBalance(employeeId: string, leaveDays: string): void {
-    const url = `https://192.168.57.185:5984/employee-db/${employeeId}`;
+    const url = `YOUR_URL/employee-db/${employeeId}`;
     const headers = new HttpHeaders({
-      'Authorization': 'Basic ' + btoa('d_couchdb:Welcome#2'),
+      'Authorization': 'Basic ' + btoa('USERNAME:PASSWORD'),
       'Content-Type': 'application/json'
     });
   
