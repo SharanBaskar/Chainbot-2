@@ -1,6 +1,6 @@
 {
   "_id": "decisiontree_3",
-  "_rev": "11-bfb705098c3b9845d746e28c21077739",
+  "_rev": "36-ffe5b719515634af69c6a3d28c1765ae",
   "data": {
     "type": "decisiontree",
     "startNode": "node1",
@@ -49,17 +49,18 @@
       },
       "node4": {
         "type": "input",
-        "text": "Type of leave"
+        "text": "Type of leave",
+        "next": "node5"
       },
       "node5": {
         "type": "input",
         "text": "Reason for the leave",
-        "next":"node6"
+        "next": "node6"
       },
       "node6": {
         "type": "input",
         "text": "No. of days",
-        "next":"node7"
+        "next": "node7"
       },
       "node7": {
         "type": "input",
@@ -96,11 +97,20 @@
         ]
       },
       "node12": {
-        "type": "input",
-        "text": "Your leave application has been successfully submitted! You will receive a confirmation email shortly. Is there anything else I can help you with?"
+        "type": "question",
+        "text": "Your leave application has been successfully submitted! You will receive a confirmation email shortly. Is there anything else I can help you with?",
+        "answers": [
+          {
+            "text": "Yes",
+            "next": "node14"
+          },
+          {
+            "text": "No",
+            "next": "node15"
+          }
+        ]
       },
-      "node13":
-      {
+      "node13": {
         "type": "question",
         "text": "Ok! Do you need any other assist?",
         "answers": [
@@ -109,18 +119,18 @@
             "next": "node14"
           },
           {
-              "text": "No",
-              "next": "node15"
-            }
-          ]
+            "text": "No",
+            "next": "node15"
+          }
+        ]
       },
       "node14": {
-          "type": "input",
-          "text": "Great! Feel free to ask"
+        "type": "input",
+        "text": "Great! Feel free to ask"
       },
       "node15": {
-          "type": "input",
-          "text": "Thank You"
+        "type": "input",
+        "text": "Thank You"
       },
       "node16": {
         "type": "question",
@@ -128,18 +138,18 @@
         "answers": [
           {
             "text": "Raise Ticket",
-            "next": "node15"
+            "next": "node17"
           },
           {
             "text": "Ticket Status",
-            "next": "node15"
+            "next": "node17"
           }
         ]
       },
       "node17": {
         "type": "input",
         "text": "You will be redirected to our e.chain portal!",
-        "next":"node13"
+        "next": "node13"
       },
       "node18": {
         "type": "question",
@@ -147,7 +157,7 @@
         "answers": [
           {
             "text": "Raise Support",
-            "next": "node17"
+            "next": "node19"
           }
         ]
       },
@@ -155,7 +165,11 @@
         "type": "input",
         "text": "You will be redirected to our appTrack portal!",
         "next": "node13"
+      },
+      "node20": {
+        "type": "input",
+        "text": "I am Large Language Model. Developed by Sharan"
+      }
     }
-  }
   }
 }
